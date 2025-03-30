@@ -1,4 +1,3 @@
-// This file contains utility functions used throughout the application.
 import { interviewCovers, mappings } from "@/constants";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
