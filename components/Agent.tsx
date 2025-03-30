@@ -84,5 +84,4 @@ const Agent = ({ userName, userId, type }: AgentProps) => {
     </>
   );
 };
-
 export default Agent;
