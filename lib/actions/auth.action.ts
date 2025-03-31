@@ -97,8 +97,8 @@ export async function getCurrentUser(): Promise<User | null> {
     if (!userRecord.exists) return null;
     return {
       ...userRecord.data(),
-      id:userRecord.id,
-    } as User
+      id: userRecord.id,
+    } as User;
   } catch (error) {
     console.log(error);
     return null;
@@ -109,14 +109,27 @@ export async function isAuthenticated() {
   const user = await getCurrentUser();
   /**
    * 1. if user exist then it will return a object having some values in it then !!user will be executed like This below..
-   * 
-   * !!{name: 'Random Name'} --> !{name: 'Random Name'} ==> false --> !false ==> true 
-   * 
+   *
+   * !!{name: 'Random Name'} --> !{name: 'Random Name'} ==> false --> !false ==> true
+   *
    * 2. if user doesn't exist then it will return a null value then !!user will be executedlike this below..
-   * 
+   *
    * !!null --> !null==>true --> !true ==> false
-   * 
+   *
    */
   return !!user; // true or false
 }
 
+export async function getInterviewByUserId(
+  userId: string
+): Promise<Interview[] | null> {
+  const interviews = await db
+    .collection("interviews")
+    .where("userId", "==", userId)
+    .orderBy("createdAt", "desc")
+    .get();
+  return interviews.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data()
+  })) as Interview[]
+}
