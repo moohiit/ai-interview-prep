@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import DisplayTechIcons from "./DisplayTechIcons";
 const InterviewCard = ({
-  interviewId,
+  id,
   userId,
   role,
   type,
@@ -51,13 +51,16 @@ const InterviewCard = ({
             </div>
           </div>
           <p className="line-clamp-2 mt-5">
-            {feedback?.finalAssessment || "You havn't taken this interview yet. Take it now to improve your skills."}
+            {feedback?.finalAssessment ||
+              "You havn't taken this interview yet. Take it now to improve your skills."}
           </p>
         </div>
         <div className="flex flex-row justify-between items-center">
-          <DisplayTechIcons techStack={techstack}/>
+          <DisplayTechIcons techStack={techstack} />
           <Button className="btn-primary">
-            <Link href={feedback ? `/interview/${interviewId}/feedback` : `/interview/${interviewId}`}>
+            <Link
+              href={feedback ? `/interview/${id}/feedback` : `/interview/${id}`}
+            >
               {feedback ? "Check Feedback" : "View Interview"}
             </Link>
           </Button>
