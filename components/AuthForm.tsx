@@ -10,7 +10,10 @@ import Link from "next/link";
 import { toast } from "sonner";
 import FormField from "./FormField";
 import { useRouter } from "next/navigation";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 import { auth } from "@/firebase/client";
 import { signIn, signUp } from "@/lib/actions/auth.action";
 const authFormSchema = (type: FormType) => {
@@ -37,51 +40,68 @@ const AuthForm = ({ type }: { type: FormType }) => {
     try {
       if (type === "sign-up") {
         const { name, email, password } = values;
-        const userCredentials = await createUserWithEmailAndPassword(auth, email, password);
+
+        const userCredentials = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
         const result = await signUp({
           uid: userCredentials.user.uid,
           name: name!,
-          email: email,
-          password: password,
-        })
+          email,
+          password,
+        });
+
         if (!result?.success) {
-          toast.error(result?.message);
-          return;
+          throw new Error(result.message || "Failed to create account.");
         }
+
         toast.success("Account created successfully! Please sign in.");
-        // Redirect to the sign-in page
         router.push("/sign-in");
       } else {
         const { email, password } = values;
-        // Call your sign-in API here
-        const userCredentials = await signInWithEmailAndPassword(auth, email, password);
-        if (!userCredentials) {
-          toast.error("Invalid email or password.");
-          return;
-        }
+
+        const userCredentials = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        ).catch((firebaseError) => {
+          const errorMessage = firebaseError?.message || "Invalid credentials.";
+          throw new Error(errorMessage);
+        });
+
         const idToken = await userCredentials.user.getIdToken();
-        if (!idToken) {
-          toast.error("Failed to Signin");
-          return;
-        }
-        const result = await signIn({
-          email: email,
-          idToken: idToken,
-        })
-        console.log("result:",result)
+
+        if (!idToken) throw new Error("Failed to retrieve ID token.");
+
+        const result = await signIn({ email, idToken });
+
         if (!result?.success) {
-          toast.error(result?.message);
-          return;
+          throw new Error(result.message || "Failed to sign in.");
         }
+
         toast.success("Signed in successfully!");
-        // Redirect to the dashboard or home page
         router.push("/");
       }
-    } catch (error) {
-      console.error("Error signing in:", error);
-      toast.error(`Error signing in, please try again later.: ${error}`);
+    } catch (error: any) {
+      console.error("Authentication error:", error);
+
+      let errorMsg = "Something went wrong. Please try again.";
+
+      if (error?.message?.includes("auth/invalid-credential")) {
+        errorMsg = "Invalid email or password.";
+      } else if (error?.response?.data?.message) {
+        errorMsg = error.response.data.message;
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+
+      toast.error(errorMsg);
     }
   }
+
 
   const isSignIn = type === "sign-in";
   return (
